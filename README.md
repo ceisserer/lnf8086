@@ -27,6 +27,12 @@ nasm -f bin -I src/ -o lfntsr.com src/lfntsr.asm
 
 or simply `make`. `make check` runs the test suite (see below).
 
+Ready-built packages are on the GitHub releases page: tagged releases,
+and a `snapshot` pre-release that is rebuilt from every push to `main`
+(`lfntsr-snapshot.zip`). To make a release, set `VERSION` in
+`src/lfntsr.asm`, then push a matching tag (`v1.10` for `0110h`).
+`tools/mkdist.sh VERSION` builds the same zip locally.
+
 ## Usage
 
 ```

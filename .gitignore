@@ -2,3 +2,4 @@
 *.COM
 *.lst
 /build/
+/dist/

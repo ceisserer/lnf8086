@@ -1,0 +1,126 @@
+name: Build
+
+# - every push / pull request: build, run the QEMU test suite, keep the
+#   zip as a workflow artifact
+# - push to main: also update the rolling "snapshot" pre-release
+# - tag vX.YY (must match VERSION in src/lfntsr.asm): publish a release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nasm qemu-system-x86 mtools dosfstools zip
+
+      - name: Determine version
+        id: ver
+        run: |
+          v=$(sed -n 's/^VERSION equ 0\([0-9]\)\([0-9][0-9]\)h.*/\1.\2/p' src/lfntsr.asm)
+          [ -n "$v" ] || { echo "::error::VERSION not found in src/lfntsr.asm"; exit 1; }
+          case "$GITHUB_REF" in
+            refs/tags/v*)
+              tag=${GITHUB_REF#refs/tags/v}
+              if [ "$tag" != "$v" ]; then
+                echo "::error::tag v$tag does not match VERSION $v in src/lfntsr.asm"
+                exit 1
+              fi
+              version=$v ;;
+            *)
+              version=$v-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD) ;;
+          esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Version: $version"
+
+      - name: Build
+        run: make
+
+      - name: Test (FreeDOS in QEMU)
+        run: make check
+
+      - name: Upload test output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: /tmp/lfntsr-check/
+          if-no-files-found: ignore
+
+      - name: Package
+        run: tools/mkdist.sh "${{ steps.ver.outputs.version }}" dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lfntsr-${{ steps.ver.outputs.version }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  snapshot:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: snapshot
+      cancel-in-progress: true
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: lfntsr-${{ needs.build.outputs.version }}
+          path: dist
+
+      - name: Update snapshot pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          # stable download name, so the asset URL never changes
+          cp "dist/lfntsr-$VERSION.zip" dist/lfntsr-snapshot.zip
+          gh release delete snapshot --cleanup-tag --yes 2>/dev/null || true
+          gh release create snapshot \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Development snapshot ($VERSION)" \
+            --notes "Automatic build of \`main\` at $GITHUB_SHA. Not a release; may be broken." \
+            "dist/lfntsr-$VERSION.zip" dist/lfntsr-snapshot.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: lfntsr-${{ needs.build.outputs.version }}
+          path: dist
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --title "LFNTSR $VERSION" \
+            --generate-notes \
+            "dist/lfntsr-$VERSION.zip"
