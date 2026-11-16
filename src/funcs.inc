@@ -320,8 +320,7 @@ dos_path_call:
 ; save_found - remember the found object (for later updates)
 save_found:
         push ax
-        mov ax,[rp_parent]
-        mov [o_parent],ax
+        CLUSCPY o_parent,rp_parent
         mov ax,[fr_idx]
         mov [o_idx],ax
         mov ax,[fr_lfnidx]
@@ -338,8 +337,7 @@ drop_old_lfn:
         push ax
         push bx
         call dos_sync
-        mov ax,[o_parent]
-        call dir_set
+        DIRSET o_parent
         mov ax,[o_lfnidx]
         mov bx,[o_idx]
         call kill_lfn
@@ -377,8 +375,7 @@ f_mkdir:
         mov si,lastname
         call check_lfn
         jc .badname
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         call make_alias
         jc .noalias
         mov si,alias11
@@ -390,8 +387,7 @@ f_mkdir:
         cmp byte [needlfn],0
         je .done
         call dos_sync
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         mov si,alias11
         call sfn_exists
         jnc .gone
@@ -485,8 +481,7 @@ f_delwild:
         jmp delwild_dos
 .loc:   mov word [dw_count],0
         mov word [dw_err],2
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         call dir_rewind
 .l:     call dir_next
         jc .end
@@ -520,8 +515,7 @@ f_delwild:
 .okd:   inc word [dw_count]
         call drop_old_lfn
 .cont:  call dos_sync
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         mov ax,[dw_it]
         mov [it_idx],ax
         jmp short .l
@@ -684,8 +678,7 @@ f_attr:
         jne .acc
         cmp byte [rp_found],0
         je .nf
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         mov [at_fn],bl
         mov ax,[fr_idx]
         call dir_ptr
@@ -1001,6 +994,7 @@ find_local:
         call drive_setup
         jc .nomore
         mov ax,[bx+H_CLUS]
+        mov dx,[bx+H_CLUS+2]
         call dir_set
         mov ax,[bx+H_IDX]
         mov [it_idx],ax
@@ -1134,8 +1128,7 @@ f_findfirst:
         jmp short .res
 .loc:   mov al,[rp_pdrive]
         mov [bx+H_DRIVE],al
-        mov ax,[rp_parent]
-        mov [bx+H_CLUS],ax
+        CLUSCPY bx+H_CLUS,rp_parent
         mov word [bx+H_IDX],0
         mov si,lastname
         lea di,[bx+H_PAT]
@@ -1243,6 +1236,9 @@ f_rename:
         mov ax,[rp_parent]
         cmp ax,[o_parent]
         jne .acc
+        mov ax,[rp_parent+2]
+        cmp ax,[o_parent+2]
+        jne .acc
         mov ax,[fr_idx]
         cmp ax,[o_idx]
         jne .acc
@@ -1264,8 +1260,7 @@ f_rename:
 .cc:    call drop_old_lfn
         cmp byte [needlfn],0
         je .ok
-        mov ax,[o_parent]
-        call dir_set
+        DIRSET o_parent
         mov ax,[o_idx]
         mov si,lastname
         call attach_lfn
@@ -1273,9 +1268,8 @@ f_rename:
 .ok:    call dos_sync
         clc
 .r2:    ret
-.new:   mov ax,[rp_parent]
-        mov [n_parent],ax
-        call dir_set
+.new:   CLUSCPY n_parent,rp_parent
+        DIRSET n_parent
         mov si,lastname
         call make_alias
         jc .acc
@@ -1291,8 +1285,7 @@ f_rename:
         cmp byte [needlfn],0
         je .ok
         call dos_sync
-        mov ax,[n_parent]
-        call dir_set
+        DIRSET n_parent
         mov si,alias11
         call sfn_exists
         jnc .ok
@@ -1485,8 +1478,7 @@ f_open:
         mov si,lastname
         call check_lfn
         jc .badname
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         call make_alias
         jc .acc
         mov si,alias11
@@ -1529,8 +1521,7 @@ f_open:
         clc
         ret
 .undo:  push ax
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         mov ax,[op_run]
         mov bx,ax
         add bx,[op_n]
@@ -1590,8 +1581,7 @@ new_lfn_file:
         call lfn_count
         inc cx
         mov [op_n],cx
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         call find_run
         jc .x
         mov [op_run],ax
@@ -1724,7 +1714,12 @@ f_volinfo:
         mov word [u_dx],80
 .name:  mov cx,[vi_size]
         mov si,fatname
-        mov ax,[u_es]
+        cmp byte [rp_mode],0
+        jne .nm
+        cmp byte [dv_fat32],0
+        je .nm
+        mov si,fat32name
+.nm:        mov ax,[u_es]
         mov di,[u_di]
         jcxz .ok
         call put_str_seg
@@ -1732,6 +1727,7 @@ f_volinfo:
 .ret:   ret
 
 fatname db 'FAT',0
+fat32name db 'FAT32',0
 
 ; ---------------------------------------------------------------------------
 ; 71A6h - file information by handle (BX handle, DS:DX 52 byte buffer)

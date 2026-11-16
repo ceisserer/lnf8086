@@ -1,6 +1,6 @@
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Code page 437
-Installed, 23200 bytes resident.
+Installed, 24256 bytes resident.
 $ cd C:\ORPHANS 
 OK
 $ dir * 
@@ -151,18 +151,18 @@ $ finds 8 *
 OK
 $ finds 9 * 
 ERR 6
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Removed from memory.
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Usage: LFNTSR [/U] [/F] [/Q] [/H:n] [/T:n]
   /U    uninstall
   /F    install even if a long file name API is present
   /Q    quiet
   /H:n  find handles (1-64, default 8)
   /T:n  long names remembered for tunnelling (0-32, default 8)
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Code page 437
-Installed, 22064 bytes resident.
+Installed, 23120 bytes resident.
 $ mk "No Tunnel.txt" x 
 action 2
 OK
@@ -178,5 +178,5 @@ $ finds 12 *
 OK
 $ finds 13 * 
 ERR 6
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Removed from memory.

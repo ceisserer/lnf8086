@@ -2,9 +2,13 @@
 
 `check.sh` boots FreeDOS in QEMU, loads LFNTSR and runs the batch files
 `basic.bat` (FAT16 hard disk C: and FAT12 floppy A:), `pass.bat`
-(FAT32 disk D:, which LFNTSR hands through to DOS) and `tunnel.bat`
+(FAT32 disk D:, including a growing FAT32 root directory, and a
+rename across drives) and `tunnel.bat`
 (plain DOS create/delete/rename: tunnelling, removal of long name
-entries, find handles, `/H` and `/T`). Each run is compared
+entries, find handles, `/H` and `/T`). `basic32` and `tunnel32` run
+`basic.bat` and `tunnel.bat` again with a FAT32 disk C: whose first 40 MB
+are taken by a file, so that the test objects lie in clusters above
+65535. Each run is compared
 with the expected output (`*.exp`). The test also checks the disk images
 from Linux: `fsck.fat` must find no errors, `lfncheck.py` must find no
 orphaned long name entries (`fsck.fat -n` does not report those), and

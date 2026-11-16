@@ -2,9 +2,9 @@
 ; LFNTSR - Long File Name API for plain DOS
 ;
 ; A TSR that implements the Windows 95 long file name API (INT 21h AX=71xxh)
-; on FAT12/FAT16 drives by reading and writing VFAT directory entries
-; directly (INT 25h/26h).  Drives it cannot handle (network, CD-ROM, FAT32)
-; get the same API mapped onto the normal short name DOS calls.
+; on FAT12/FAT16/FAT32 drives by reading and writing VFAT directory entries
+; directly (INT 25h/26h, INT 21h/7305h).  Drives it cannot handle (network,
+; CD-ROM) get the same API mapped onto the normal short name DOS calls.
 ;
 ; Requires: DOS 3.1+, 8086/8088 CPU.  Assemble with NASM:
 ;       nasm -f bin -o lfntsr.com lfntsr.asm
@@ -41,11 +41,11 @@ H_MODE  equ 1                   ; 0 = FAT search, 1 = DOS search
 H_DRIVE equ 2
 H_ALLOW equ 3
 H_REQ   equ 4
-H_CLUS  equ 6
-H_IDX   equ 8
-H_LRU   equ 10
-H_GEN   equ 12                  ; generation (high byte of the handle)
-H_PAT   equ 13                  ; pattern (FAT) or DTA (DOS)
+H_CLUS  equ 6                   ; directory (dword)
+H_IDX   equ 10
+H_LRU   equ 12
+H_GEN   equ 14                  ; generation (high byte of the handle)
+H_PAT   equ 15                  ; pattern (FAT) or DTA (DOS)
 HSIZE   equ H_PAT + MAXPATH + 1
 
 ; DBG 'x' - with -DDEBUG write a character to the Bochs/QEMU debug port E9h
@@ -465,20 +465,30 @@ dv_fixed  resb 1
 dv_ext    resb 1
 dv_spc    resb 1
 dv_spcshift resb 1
-dv_nfats  resb 1
+dv_nfats  resb 1                ; FAT copies to write
 dv_fat16  resb 1
+dv_fat32  resb 1
           resb 1
-dv_fatstart resw 1
-dv_fatsz  resw 1
-dv_rootents resw 1
+dv_fatstart resd 1              ; first (active) FAT
+dv_fatsz  resd 1
+dv_rootents resw 1              ; FAT12/16 fixed root directory
 dv_rootstart resw 1
-dv_datastart resw 1
-dv_maxclust resw 1
-dv_freehint resw 1
+dv_datastart resd 1
+dv_maxclust resd 1
+dv_freehint resd 1
+dv_rootclus resd 1              ; FAT32 root directory
 dv_serial resd 1
-d_clus    resw 1
-d_cc      resw 1
+d_clus    resd 1
+d_cc      resd 1
 d_ci      resw 1
+xd_last   resd 1                ; dir_extend
+xd_cand   resd 1
+xd_left   resd 1
+fs_val    resd 1                ; fat_set
+SDPB_SZ   equ 24
+sdpb      resb SDPB_SZ          ; INT 21h/7304h structure
+XDPB_SZ   equ 64
+xdpb      resb XDPB_SZ          ; INT 21h/7302h extended DPB
 
 ; directory scanning
 it_idx    resw 1
@@ -534,8 +544,8 @@ rp_srest  resw 1
 rp_lrest  resw 1
 rp_slast  resw 1
 rp_llast  resw 1
-rp_parent resw 1
-cur_clus  resw 1
+rp_parent resd 1
+cur_clus  resd 1
 ps_end    resw 1
 pl_end    resw 1
 wptr      resw 1
@@ -561,10 +571,10 @@ wl_idx    resw 1
 wl_name   resw 1
 wl_len    resw 1
 al_idx    resw 1
-o_parent  resw 1
+o_parent  resd 1
 o_idx     resw 1
 o_lfnidx  resw 1
-n_parent  resw 1
+n_parent  resd 1
 dw_count  resw 1
 dw_err    resw 1
 dw_it     resw 1
@@ -592,13 +602,13 @@ sw_chk    resb 1
 ps_vars:
 ps_flags  resw 1
 ps_drive  resw 1
-ps_clus   resw 1
+ps_clus   resd 1
 ps_a      resw 1
 ps_b      resw 1
 ps_dx     resw 1
 ps_cx     resw 1
 ps_dosf   resw 1
-tk_clus   resw 1
+tk_clus   resd 1
 tk_name   resw 1
 t_hit     resw 1
 sw_start  resw 1

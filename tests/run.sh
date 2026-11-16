@@ -17,14 +17,28 @@ nasm -f bin -o "$work/LT.COM" "$here/lt.asm"
 printf 'mov al,0\nout 0xf4,al\nhlt\n' > "$work/exit.asm"
 nasm -f bin -o "$work/EXIT.COM" "$work/exit.asm"
 cp "$FDBOOT" "$work/fd.img"
-# FAT16 hard disk, ~40 MB, one primary partition (16 heads, 63 sectors)
+# hard disk C:, one primary partition (16 heads, 63 sectors): FAT16 with
+# ~40 MB, or with HDFAT=32 FAT32 with ~60 MB (1 sector per cluster)
 rm -f "$work/hd.img"
-set -- $(python3 "$here/mkhd.py" "$work/hd.img" ${HDCYLS:-81} 6)
-SOURCE_DATE_EPOCH=946684800 mkfs.fat -F 16 -h $1 -g 16/63 -S 512 --offset $1 -i 1234ABCD -n TESTDISK "$work/hd.img" $(($2 / 2)) >/dev/null
+if [ "$HDFAT" = 32 ]; then
+    HDCYLS=${HDCYLS:-120}
+    set -- $(python3 "$here/mkhd.py" "$work/hd.img" $HDCYLS 0x0B)
+    SOURCE_DATE_EPOCH=946684800 mkfs.fat -F 32 -s 1 -h $1 -g 16/63 -S 512 --offset $1 -i 1234ABCD -n TESTDISK "$work/hd.img" $(($2 / 2)) >/dev/null
+else
+    set -- $(python3 "$here/mkhd.py" "$work/hd.img" ${HDCYLS:-81} 6)
+    SOURCE_DATE_EPOCH=946684800 mkfs.fat -F 16 -h $1 -g 16/63 -S 512 --offset $1 -i 1234ABCD -n TESTDISK "$work/hd.img" $(($2 / 2)) >/dev/null
+fi
 echo "@@$(($1 * 512))" > "$work/hdoff"
+# optional: HDFILL=MB puts a file of that size on C: first, so that what the
+# tests create lies in clusters above 65535 (FAT32)
+if [ -n "$HDFILL" ]; then
+    dd if=/dev/zero of="$work/FILL.BIN" bs=1M count=$HDFILL 2>/dev/null
+    mcopy -i "$work/hd.img@@$(($1 * 512))" "$work/FILL.BIN" ::FILL.BIN
+    rm -f "$work/FILL.BIN"
+fi
 # optional preparation of the hard disk: $HDSETUP IMAGE@@OFFSET
 if [ -n "$HDSETUP" ]; then $HDSETUP "$work/hd.img@@$(($1 * 512))"; fi
-# optional second disk D: with FAT32 (not handled by LFNTSR -> pass-through)
+# optional second disk D: with FAT32
 HD2=
 if [ -n "$FAT32" ]; then
     rm -f "$work/hd2.img"

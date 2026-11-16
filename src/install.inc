@@ -337,7 +337,7 @@ print_kb_q:
         pop ax
         ret
 
-msg_banner  db 'LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)',13,10,'$'
+msg_banner  db 'LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)',13,10,'$'
 msg_dosver  db 'DOS 3.10 or newer required.',13,10,'$'
 msg_usage   db 'Usage: LFNTSR [/U] [/F] [/Q] [/H:n] [/T:n]',13,10
             db '  /U    uninstall',13,10

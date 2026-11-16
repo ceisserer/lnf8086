@@ -1,7 +1,7 @@
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Code page 437
-Installed, 23200 bytes resident.
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+Installed, 24256 bytes resident.
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Already installed.
 $ vol C:\ 
 4006 255 260 FAT
@@ -407,7 +407,7 @@ OK
 $ short "A:\Floppy Directory\Renamed On Floppy.txt" 
 A:\FLOPPY~1\RENAME~1.TXT
 OK
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Removed from memory.
 $ vol C:\ 
 ERR 28928

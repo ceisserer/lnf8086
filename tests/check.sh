@@ -37,7 +37,7 @@ run() {
     compare "$work/$name/out.txt" "$here/$name.exp"
     fsck_img "$work/$name/hd.img" 63
     fsck_img "$work/$name/fd.img" 0
-    fsck_img "$work/$name/hd2.img" 63 nolfn
+    fsck_img "$work/$name/hd2.img" 63
     off=$(cat "$work/$name/hdoff")
     LC_ALL=C.UTF-8 mdir -/ -b -i "$work/$name/hd.img$off" :: | sort > "$work/$name/hd.files"
     compare "$work/$name/hd.files" "$here/$name.files"
@@ -46,6 +46,8 @@ run() {
 run basic basic "$here/fdboot.img" FAT32=1
 run pass pass "$here/fdboot.img" FAT32=1
 run tunnel tunnel "$here/fdboot.img" HDSETUP="$here/mkorphan.sh"
+run basic32 basic "$here/fdboot.img" HDFAT=32 HDFILL=40
+run tunnel32 tunnel "$here/fdboot.img" HDFAT=32 HDFILL=40 HDSETUP="$here/mkorphan.sh"
 if [ -n "$MSDOS_IMG" ]; then
     run msdos-basic basic "$MSDOS_IMG"
     run msdos msdos "$MSDOS_IMG" 'CONFIGEXTRA=DEVICE=A:\RAMDRIVE.SYS 256 512 64\r\n'

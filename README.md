@@ -4,7 +4,7 @@ LFNTSR is a small TSR that adds the Windows 95 long file name API
 (INT 21h, AX=71xxh) to DOS, in the spirit of DOSLFN and LFNDOS. Programs
 that know this API (DJGPP and Open Watcom programs, many FreeDOS tools,
 ...) can then create, find, rename and
-delete files with long names on FAT12/FAT16 disks. The names are
+delete files with long names on FAT12, FAT16 and FAT32 disks. The names are
 stored in standard VFAT format, so Windows, Linux and mtools read
 them as usual, and the reverse also works.
 
@@ -14,7 +14,7 @@ them as usual, and the reverse also works.
 * **DOS 3.10 or newer** (MS-DOS, PC DOS, DR-DOS, FreeDOS, ...).
 * Written for **NASM** (free, open source). There are no other build
   dependencies.
-* About 23 KB resident with the default settings (19 KB with `/T:0`).
+* About 24 KB resident with the default settings (22 KB with `/T:0`).
   It can be loaded high with `LH`/`LOADHIGH`.
 * Programs that only know the plain DOS functions keep long names intact
   ("tunnelling", see below).
@@ -40,9 +40,9 @@ LFNTSR [/U] [/F] [/Q] [/H:n] [/T:n]
   /U    uninstall
   /F    install even if a long file name API is already present
   /Q    quiet
-  /H:n  number of find handles, 1-64 (default 8, 274 bytes each)
+  /H:n  number of find handles, 1-64 (default 8, 276 bytes each)
   /T:n  long names remembered for tunnelling, 0-32 (default 8,
-        278 bytes each; 0 turns tunnelling off)
+        280 bytes each; 0 turns tunnelling off)
 ```
 
 Put `LFNTSR` (or `LH LFNTSR /Q`) into `AUTOEXEC.BAT`. On startup it
@@ -67,7 +67,7 @@ already provides the API, unless you give `/F`.
 | 7156h  | rename / move file                          | also changing only the letter case |
 | 7160h  | truename (CL=0 full, 1 short, 2 long path)  | CH bit 7 = don't expand SUBST |
 | 716Ch  | extended open/create                        | |
-| 71A0h  | get volume information                      | BX=4006h on FAT12/16 |
+| 71A0h  | get volume information                      | BX=4006h, "FAT" or "FAT32" |
 | 71A6h  | get file info by handle                     | |
 | 71A7h  | FILETIME <-> DOS time conversion            | |
 | 71A8h  | generate short name                         | |
@@ -86,7 +86,8 @@ Ctrl-C, so DOS can't abort a program halfway through an update.
 
 * **Path resolution.** A long path is converted into a short one by
   reading directories directly with INT 25h (both the classic and the
-  >32 MB packet form). Long names are assembled from the VFAT entries
+  >32 MB packet form; on FAT32 drives INT 21h/7305h, which DOS 7.1 and
+  FreeDOS provide). Long names are assembled from the VFAT entries
   and checked against the SFN checksum. The starting point comes from
   DOS itself (TRUENAME of `X:\` and the current directory), so SUBST'd
   drives work.
@@ -97,10 +98,13 @@ Ctrl-C, so DOS can't abort a program halfway through an update.
   there is no room. A new file with a long name is created
   differently: LFNTSR writes the long name entries and an empty short
   entry, then lets DOS open it.
-* **Growing directories.** When a subdirectory needs more room, LFNTSR
-  appends a cluster itself (FAT12 and FAT16, all FAT copies). It then
+* **Growing directories.** When a subdirectory (or the FAT32 root
+  directory) needs more room, LFNTSR appends a cluster itself (all FAT
+  copies, or only the active FAT when FAT32 mirroring is off). It then
   marks the free-cluster count in DOS's drive parameter block as
-  unknown, so DOS recounts.
+  unknown, so DOS recounts. On FAT32 this goes through INT 21h/7304h,
+  which also updates the FSINFO sector; FreeDOS does not accept
+  "unknown" there, so LFNTSR then sets the count one lower.
 * **Keeping DOS consistent.** Around every DOS call and direct disk
   access, LFNTSR calls INT 21h/0Dh. Both MS-DOS (4.0 source) and
   FreeDOS write dirty buffers *and invalidate all buffers* there, so
@@ -163,9 +167,9 @@ the same results as for a new file. DOS itself runs on the caller's stack
 with the caller's INT 23h/24h handlers, as without LFNTSR. The 71xxh calls
 do not use the tunnel. Remembered names live only in memory.
 
-### Drives that are not FAT12/FAT16
+### Drives that are not FAT12/FAT16/FAT32
 
-Network drives, CD-ROMs (MSCDEX), FAT32 volumes and disks with sector
+Network drives, CD-ROMs (MSCDEX) and disks with sector
 sizes other than 512 bytes are not modified directly. On these drives
 the 71xxh calls are mapped to the normal DOS functions (short names
 only). Programs keep working, and 71A0h reports that long names are not
@@ -173,8 +177,8 @@ supported (BX=0).
 
 ## Limitations
 
-* No FAT32 long name support (FAT32 only exists in DOS 7.1 and FreeDOS;
-  those drives are handled as described above).
+* FAT32 is so far tested on FreeDOS only, not on MS-DOS 7.1 (Windows 9x
+  DOS mode).
 * Single-byte code pages only (no DBCS).
 * 71A6h returns attributes 20h and file index 0. FILETIME values are
   local time (there is no time zone information in DOS).
@@ -206,7 +210,8 @@ supported (BX=0).
 
 `tests/` contains an automated test suite. It boots FreeDOS in QEMU with
 a FAT12 floppy, a FAT16 hard disk and a FAT32 hard disk, and runs a few
-hundred API calls through the `LT.COM` test tool. If you provide an
+hundred API calls through the `LT.COM` test tool. The basic and
+tunnelling tests run a second time with a FAT32 hard disk C:. If you provide an
 MS-DOS 6.x boot floppy (built from your own setup disk 1 with
 `tests/mkmsdos.sh`), the same tests also run on MS-DOS, plus tests
 for SUBST, SHARE, RAMDRIVE and CHKDSK. The output is compared

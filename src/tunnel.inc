@@ -20,8 +20,8 @@
 ; LFNTSR.
 ; ===========================================================================
 
-PS_N     equ 7                  ; state words: ps_flags .. ps_cx
-PS_DX    equ 5                  ; index of ps_dx
+PS_N     equ 8                  ; state words: ps_flags .. ps_cx
+PS_DX    equ 6                  ; index of ps_dx
 PF_KILL  equ 01h                ; long name entries ps_a..ps_b-1 of entry ps_b
 PF_SWEEP equ 02h                ; sweep the whole directory
 PF_MADE  equ 04h                ; we created entries ps_a, ps_b entries long
@@ -32,13 +32,13 @@ PF_DEST  equ 20h                ; rename: tunnel to the new name
 ; tunnel entry
 T_USED  equ 0
 T_DRIVE equ 1
-T_CLUS  equ 2                   ; directory
-T_TICK  equ 4                   ; BIOS tick count when recorded
-T_CMS   equ 6                   ; creation time 10 ms
-T_NAME  equ 7                   ; 11 byte short name
-T_CTIME equ 18
-T_CDATE equ 20
-T_LONG  equ 22                  ; long name (OEM, NUL terminated)
+T_CLUS  equ 2                   ; directory (dword)
+T_TICK  equ 6                   ; BIOS tick count when recorded
+T_CMS   equ 8                   ; creation time 10 ms
+T_NAME  equ 9                   ; 11 byte short name
+T_CTIME equ 20
+T_CDATE equ 22
+T_LONG  equ 24                  ; long name (OEM, NUL terminated)
 TSIZE   equ T_LONG+256
 T_TICKS equ 273                 ; 15 seconds at 18.2 ticks/s
 
@@ -224,15 +224,13 @@ pre_create:
         jc .x
         mov al,[rp_pdrive]
         mov [tk_drive],al
-        mov ax,[rp_parent]
-        mov [tk_clus],ax
+        CLUSCPY tk_clus,rp_parent
         mov word [tk_name],alias11
         call tunnel_find
         jc .x
         mov [t_hit],bx
         ; the long name must still be free in this directory
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         lea si,[bx+T_LONG]
         call dir_find
         jnc .drop
@@ -259,8 +257,7 @@ pre_create:
         mov al,[rp_pdrive]
         xor ah,ah
         mov [ps_drive],ax
-        mov ax,[rp_parent]
-        mov [ps_clus],ax
+        CLUSCPY ps_clus,rp_parent
         mov ax,[op_run]
         mov [ps_a],ax
         mov ax,[op_n]
@@ -328,8 +325,7 @@ post_create:
         mov al,[ps_drive]
         call drive_setup
         jc .x
-        mov ax,[ps_clus]
-        call dir_set
+        DIRSET ps_clus
         test byte [ps_dosf],1
         jnz .undo
         test word [ps_flags],PF_DX
@@ -362,6 +358,8 @@ post_create:
         je .sync
         cmp word [bx+1Ah],0             ; still our empty entry?
         jne .sync
+        cmp word [bx+14h],0
+        jne .sync
         mov byte [bx],0E5h
         call dir_dirty
 .sync:  call dos_sync
@@ -373,8 +371,7 @@ post_cleanup:
         mov al,[ps_drive]
         call drive_setup
         jc .x
-        mov ax,[ps_clus]
-        call dir_set
+        DIRSET ps_clus
         test word [ps_flags],PF_SWEEP
         jz .one
         call sweep_orphans
@@ -433,14 +430,12 @@ post_dest:
         mov [o_idx],ax
         mov al,[rp_pdrive]
         mov [tk_drive],al
-        mov ax,[rp_parent]
-        mov [tk_clus],ax
+        CLUSCPY tk_clus,rp_parent
         mov word [tk_name],o_name11
         call tunnel_find
         jc .x
         mov [t_hit],bx
-        mov ax,[rp_parent]
-        call dir_set
+        DIRSET rp_parent
         lea si,[bx+T_LONG]
         call dir_find
         jnc .drop
@@ -570,9 +565,8 @@ scan_matches:
         mov al,[rp_pdrive]
         xor ah,ah
         mov [ps_drive],ax
-        mov ax,[rp_parent]
-        mov [ps_clus],ax
-        call dir_set
+        CLUSCPY ps_clus,rp_parent
+        DIRSET ps_clus
         call dir_rewind
 .l:     call dir_next
         jc .x
@@ -717,6 +711,9 @@ t_samekey:
         mov ax,[tk_clus]
         cmp ax,[si+T_CLUS]
         jne .x
+        mov ax,[tk_clus+2]
+        cmp ax,[si+T_CLUS+2]
+        jne .x
         add si,T_NAME
         mov di,[tk_name]
         mov cx,11
@@ -792,8 +789,7 @@ tunnel_add:
         push bp
         mov al,[rp_pdrive]
         mov [tk_drive],al
-        mov ax,[rp_parent]
-        mov [tk_clus],ax
+        CLUSCPY tk_clus,rp_parent
         mov word [tk_name],fr_ent
         call ticks
         mov dx,ax
@@ -820,6 +816,8 @@ tunnel_add:
         mov [si+T_DRIVE],al
         mov ax,[tk_clus]
         mov [si+T_CLUS],ax
+        mov ax,[tk_clus+2]
+        mov [si+T_CLUS+2],ax
         mov [si+T_TICK],dx
         mov al,[fr_ent+0Dh]
         mov [si+T_CMS],al
