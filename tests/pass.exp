@@ -1,8 +1,8 @@
-LFNTSR 1.10 - long file name API for DOS (FAT12/FAT16)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
 Code page 437
-Installed, 23200 bytes resident.
+Installed, 24256 bytes resident.
 $ vol D:\ 
-0000 12 80 FAT
+4006 255 260 FAT32
 OK
 $ md "D:\LONGDIR" 
 OK
@@ -56,6 +56,37 @@ OK
 $ rd LONGDIR 
 OK
 $ md "Long Name On FAT32" 
+OK
+$ dir "D:\*directory 1*" 
+A long file name in the FAT32 root directory 1 | ALONGF~1 | 20 1
+A long file name in the FAT32 root directory 10 | ALONG~10 | 20 2
+A long file name in the FAT32 root directory 11 | ALONG~11 | 20 2
+A long file name in the FAT32 root directory 12 | ALONG~12 | 20 2
+A long file name in the FAT32 root directory 13 | ALONG~13 | 20 2
+A long file name in the FAT32 root directory 14 | ALONG~14 | 20 2
+A long file name in the FAT32 root directory 15 | ALONG~15 | 20 2
+A long file name in the FAT32 root directory 16 | ALONG~16 | 20 2
+A long file name in the FAT32 root directory 17 | ALONG~17 | 20 2
+A long file name in the FAT32 root directory 18 | ALONG~18 | 20 2
+A long file name in the FAT32 root directory 19 | ALONG~19 | 20 2
+OK
+$ cat "D:\A long file name in the FAT32 root directory 17" 
+17
+OK
+$ delw "D:\A long file name in the FAT32 root directory 1?" 
+OK
+$ dir "D:\*" 
+Long Name On FAT32 | LONGNA~1 | 10 0
+A long file name in the FAT32 root directory 1 | ALONGF~1 | 20 1
+A long file name in the FAT32 root directory 2 | ALONGF~2 | 20 1
+A long file name in the FAT32 root directory 3 | ALONGF~3 | 20 1
+A long file name in the FAT32 root directory 4 | ALONGF~4 | 20 1
+A long file name in the FAT32 root directory 5 | ALONGF~5 | 20 1
+A long file name in the FAT32 root directory 6 | ALONGF~6 | 20 1
+A long file name in the FAT32 root directory 7 | ALONGF~7 | 20 1
+A long file name in the FAT32 root directory 8 | ALONGF~8 | 20 1
+A long file name in the FAT32 root directory 9 | ALONGF~9 | 20 1
+A long file name in the FAT32 root directory 20 | ALONG~20 | 20 2
 OK
 $ md "C:\Grow" 
 OK

@@ -22,6 +22,13 @@ D:
 %LT% cd \ >> A:\OUT.TXT
 %LT% rd LONGDIR >> A:\OUT.TXT
 %LT% md "Long Name On FAT32" >> A:\OUT.TXT
+REM ---- FAT32: long names make the root directory (a cluster chain) grow
+for %%i in (1 2 3 4 5 6 7 8 9 10) do %LT% mk "D:\A long file name in the FAT32 root directory %%i" %%i >> A:\NUL
+for %%i in (11 12 13 14 15 16 17 18 19 20) do %LT% mk "D:\A long file name in the FAT32 root directory %%i" %%i >> A:\NUL
+%LT% dir "D:\*directory 1*" >> A:\OUT.TXT
+%LT% cat "D:\A long file name in the FAT32 root directory 17" >> A:\OUT.TXT
+%LT% delw "D:\A long file name in the FAT32 root directory 1?" >> A:\OUT.TXT
+%LT% dir "D:\*" >> A:\OUT.TXT
 REM ---- cross device rename and growing directories with LFN on C:
 C:
 %LT% md "C:\Grow" >> A:\OUT.TXT

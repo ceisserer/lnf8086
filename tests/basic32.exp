@@ -1,0 +1,414 @@
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Code page 437
+Installed, 24256 bytes resident.
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Already installed.
+$ vol C:\ 
+4006 255 260 FAT32
+OK
+$ vol A:\ 
+4006 255 260 FAT
+OK
+$ md "C:\Long Directory Name" 
+OK
+$ md "C:\long directory name" 
+ERR 5
+$ cd "C:\Long Directory Name" 
+OK
+$ pwd 
+\Long Directory Name
+OK
+$ mk "My Document.txt" "hello world" 
+action 2
+OK
+$ cat "my document.TXT" 
+hello world
+OK
+$ mk readme.txt "lower case 8.3" 
+action 2
+OK
+$ mk UPPER.TXT "upper case 8.3" 
+action 2
+OK
+$ mknew "My Document.txt" x 
+ERR 80
+$ mk "My Document.txt" "replaced" 
+action 3
+OK
+$ cat MYDOCU~1.TXT 
+replaced
+OK
+$ mk "another long file name with many characters.text" content 
+action 2
+OK
+$ mk "Test File 1.txt" x 
+action 2
+OK
+$ mk "Test File 2.txt" x 
+action 2
+OK
+$ mk "Test File 3.txt" x 
+action 2
+OK
+$ mk "Test File 4.txt" x 
+action 2
+OK
+$ mk "Test File 5.txt" x 
+action 2
+OK
+$ mk "Test File 6.txt" x 
+action 2
+OK
+$ mk "Test File 7.txt" x 
+action 2
+OK
+$ mk "Test File 8.txt" x 
+action 2
+OK
+$ mk "Test File 9.txt" x 
+action 2
+OK
+$ mk "Test File 10.txt" x 
+action 2
+OK
+$ mk "Test File 11.txt" x 
+action 2
+OK
+$ dir * 
+. |  | 10 0
+.. |  | 10 0
+My Document.txt | MYDOCU~1.TXT | 20 8
+readme.txt | README.TXT | 20 14
+UPPER.TXT |  | 20 14
+another long file name with many characters.text | ANOTHE~1.TEX | 20 7
+Test File 1.txt | TESTFI~1.TXT | 20 1
+Test File 2.txt | TESTFI~2.TXT | 20 1
+Test File 3.txt | TESTFI~3.TXT | 20 1
+Test File 4.txt | TESTFI~4.TXT | 20 1
+Test File 5.txt | TESTFI~5.TXT | 20 1
+Test File 6.txt | TESTFI~6.TXT | 20 1
+Test File 7.txt | TESTFI~7.TXT | 20 1
+Test File 8.txt | TESTFI~8.TXT | 20 1
+Test File 9.txt | TESTFI~9.TXT | 20 1
+Test File 10.txt | TESTF~10.TXT | 20 1
+Test File 11.txt | TESTF~11.TXT | 20 1
+OK
+$ dir "*.txt" 
+My Document.txt | MYDOCU~1.TXT | 20 8
+readme.txt | README.TXT | 20 14
+UPPER.TXT |  | 20 14
+Test File 1.txt | TESTFI~1.TXT | 20 1
+Test File 2.txt | TESTFI~2.TXT | 20 1
+Test File 3.txt | TESTFI~3.TXT | 20 1
+Test File 4.txt | TESTFI~4.TXT | 20 1
+Test File 5.txt | TESTFI~5.TXT | 20 1
+Test File 6.txt | TESTFI~6.TXT | 20 1
+Test File 7.txt | TESTFI~7.TXT | 20 1
+Test File 8.txt | TESTFI~8.TXT | 20 1
+Test File 9.txt | TESTFI~9.TXT | 20 1
+Test File 10.txt | TESTF~10.TXT | 20 1
+Test File 11.txt | TESTF~11.TXT | 20 1
+OK
+$ dir "test*" 
+Test File 1.txt | TESTFI~1.TXT | 20 1
+Test File 2.txt | TESTFI~2.TXT | 20 1
+Test File 3.txt | TESTFI~3.TXT | 20 1
+Test File 4.txt | TESTFI~4.TXT | 20 1
+Test File 5.txt | TESTFI~5.TXT | 20 1
+Test File 6.txt | TESTFI~6.TXT | 20 1
+Test File 7.txt | TESTFI~7.TXT | 20 1
+Test File 8.txt | TESTFI~8.TXT | 20 1
+Test File 9.txt | TESTFI~9.TXT | 20 1
+Test File 10.txt | TESTF~10.TXT | 20 1
+Test File 11.txt | TESTF~11.TXT | 20 1
+OK
+$ dir "*.text" 
+another long file name with many characters.text | ANOTHE~1.TEX | 20 7
+OK
+$ dir "nomatch*" 
+ERR 2
+$ dir "C:\No Such Dir\*" 
+ERR 3
+$ short "My Document.txt" 
+C:\LONGDI~1\MYDOCU~1.TXT
+OK
+$ long "c:\longdi~1\mydocu~1.txt" 
+C:\Long Directory Name\My Document.txt
+OK
+$ full "My Document.txt" 
+C:\LONGDI~1\MYDOCU~1.TXT
+OK
+$ full "Not There Yet.txt" 
+C:\LONGDI~1\Not There Yet.txt
+OK
+$ short "Not There Yet.txt" 
+ERR 2
+$ long C:\ 
+C:\
+OK
+$ ren "My Document.txt" "Renamed Document.txt" 
+OK
+$ cat "Renamed Document.txt" 
+replaced
+OK
+$ cat "My Document.txt" 
+ERR 2
+$ ren readme.txt ReadMe.txt 
+OK
+$ ren UPPER.TXT "Upper Case.Txt" 
+OK
+$ ren "Renamed Document.txt" "C:\Moved File.txt" 
+OK
+$ ren "Test File 1.txt" "Test File 2.txt" 
+ERR 5
+$ attr "Test File 2.txt" 
+0020
+OK
+$ setattr "Test File 2.txt" 1 
+OK
+$ attr "Test File 2.txt" 
+0001
+OK
+$ del "Test File 2.txt" 
+ERR 5
+$ setattr "Test File 2.txt" 32 
+OK
+$ del "Test File 2.txt" 
+OK
+$ del "Test File 2.txt" 
+ERR 2
+$ delw "Test File 1*.txt" 
+OK
+$ dir * 
+. |  | 10 0
+.. |  | 10 0
+ReadMe.txt | README.TXT | 20 14
+another long file name with many characters.text | ANOTHE~1.TEX | 20 7
+Test File 3.txt | TESTFI~3.TXT | 20 1
+Test File 4.txt | TESTFI~4.TXT | 20 1
+Test File 5.txt | TESTFI~5.TXT | 20 1
+Test File 6.txt | TESTFI~6.TXT | 20 1
+Test File 7.txt | TESTFI~7.TXT | 20 1
+Test File 8.txt | TESTFI~8.TXT | 20 1
+Test File 9.txt | TESTFI~9.TXT | 20 1
+Upper Case.Txt | UPPERC~1.TXT | 20 14
+OK
+$ touch "Upper Case.Txt" 
+505D 645C 3CCF 0843 150 14
+OK
+$ finfo "Upper Case.Txt" 
+20 14 1 01D5EEFC
+OK
+$ gen "Long File Name.txt" 
+LONGFI~1.TXT
+[LONGFI~1TXT]
+OK
+$ gen readme.txt 
+README.TXT
+[README  TXT]
+OK
+$ gen .bashrc 
+BASHRC~1
+[BASHRC~1   ]
+OK
+$ gen "a+b=c [1].txt" 
+A_B_C_~1.TXT
+[A_B_C_~1TXT]
+OK
+$ gen x.y.z 
+XY~1.Z
+[XY~1    Z  ]
+OK
+$ gen "bad*name" 
+ERR 3
+$ time 
+01DD6D2BFD6BBAA0 5D65 6DBD 137
+OK
+$ md "Sub Dir With Spaces" 
+OK
+$ mk "C:\Long Directory Name\Sub Dir With Spaces\Deep File.txt" deep 
+action 2
+OK
+$ cd \ 
+OK
+$ cd "Long Directory Name/Sub Dir With Spaces" 
+OK
+$ pwd 
+\Long Directory Name\Sub Dir With Spaces
+OK
+$ cat "Deep File.txt" 
+deep
+OK
+$ cd .. 
+OK
+$ pwd 
+\Long Directory Name
+OK
+$ rd "Sub Dir With Spaces" 
+ERR 5
+$ del "Sub Dir With Spaces\Deep File.txt" 
+OK
+$ rd "Sub Dir With Spaces" 
+OK
+$ md "Directory To Rename" 
+OK
+$ mk "Directory To Rename\Inner File.txt" inner 
+action 2
+OK
+$ ren "Directory To Rename" "Renamed Directory" 
+OK
+$ cat "Renamed Directory\Inner File.txt" 
+inner
+OK
+$ mk nul "to the null device" 
+action 0
+OK
+$ mk "C:\Long Directory Name\con.txt" "to the console" 
+action 0
+OK
+$ attr nul 
+ERR 2
+$ dir "C:\*" 
+FILL.BIN |  | 20 0
+Long Directory Name | LONGDI~1 | 10 0
+Moved File.txt | MOVEDF~1.TXT | 20 8
+OK
+$ dir "C:\Long Directory Name\*e*" 
+ReadMe.txt | README.TXT | 20 14
+another long file name with many characters.text | ANOTHE~1.TEX | 20 7
+Renamed Directory | RENAME~1 | 10 0
+Test File 3.txt | TESTFI~3.TXT | 20 1
+Test File 4.txt | TESTFI~4.TXT | 20 1
+Test File 5.txt | TESTFI~5.TXT | 20 1
+Test File 6.txt | TESTFI~6.TXT | 20 1
+Test File 7.txt | TESTFI~7.TXT | 20 1
+Test File 8.txt | TESTFI~8.TXT | 20 1
+Test File 9.txt | TESTFI~9.TXT | 20 1
+Upper Case.Txt | UPPERC~1.TXT | 20 14
+OK
+$ cat "C:\Moved File.txt" 
+replaced
+OK
+$ mk "Grüße aus Köln.txt" umlaut 
+action 2
+OK
+$ cat "GRÜßE AUS KÖLN.TXT" 
+umlaut
+OK
+$ cat "grüße aus köln.txt" 
+umlaut
+OK
+$ mk "A file name that is longer than eighty characters to use many directory entries.txt" long 
+action 2
+OK
+$ cat "a file name that is longer than eighty characters to use many directory entries.txt" 
+long
+OK
+$ md "C:\Many" 
+OK
+$ cd "C:\Many" 
+OK
+$ dir "*" 
+. |  | 10 0
+.. |  | 10 0
+Many Long Named File Number 1.dat | MANYLO~1.DAT | 20 1
+Many Long Named File Number 2.dat | MANYLO~2.DAT | 20 1
+Many Long Named File Number 3.dat | MANYLO~3.DAT | 20 1
+Many Long Named File Number 4.dat | MANYLO~4.DAT | 20 1
+Many Long Named File Number 5.dat | MANYLO~5.DAT | 20 1
+Many Long Named File Number 6.dat | MANYLO~6.DAT | 20 1
+Many Long Named File Number 7.dat | MANYLO~7.DAT | 20 1
+Many Long Named File Number 8.dat | MANYLO~8.DAT | 20 1
+Many Long Named File Number 9.dat | MANYLO~9.DAT | 20 1
+Many Long Named File Number 10.dat | MANYL~10.DAT | 20 2
+Many Long Named File Number 11.dat | MANYL~11.DAT | 20 2
+Many Long Named File Number 12.dat | MANYL~12.DAT | 20 2
+Many Long Named File Number 13.dat | MANYL~13.DAT | 20 2
+Many Long Named File Number 14.dat | MANYL~14.DAT | 20 2
+Many Long Named File Number 15.dat | MANYL~15.DAT | 20 2
+Many Long Named File Number 16.dat | MANYL~16.DAT | 20 2
+Many Long Named File Number 17.dat | MANYL~17.DAT | 20 2
+Many Long Named File Number 18.dat | MANYL~18.DAT | 20 2
+Many Long Named File Number 19.dat | MANYL~19.DAT | 20 2
+Many Long Named File Number 20.dat | MANYL~20.DAT | 20 2
+Many Long Named File Number 21.dat | MANYL~21.DAT | 20 2
+Many Long Named File Number 22.dat | MANYL~22.DAT | 20 2
+Many Long Named File Number 23.dat | MANYL~23.DAT | 20 2
+Many Long Named File Number 24.dat | MANYL~24.DAT | 20 2
+Many Long Named File Number 25.dat | MANYL~25.DAT | 20 2
+Many Long Named File Number 26.dat | MANYL~26.DAT | 20 2
+Many Long Named File Number 27.dat | MANYL~27.DAT | 20 2
+Many Long Named File Number 28.dat | MANYL~28.DAT | 20 2
+Many Long Named File Number 29.dat | MANYL~29.DAT | 20 2
+Many Long Named File Number 30.dat | MANYL~30.DAT | 20 2
+OK
+$ cat "Many Long Named File Number 30.dat" 
+30
+OK
+$ delw "*" 
+OK
+$ dir "*" 
+. |  | 10 0
+.. |  | 10 0
+OK
+$ md "A:\Floppy Directory" 
+OK
+$ cd "A:\Floppy Directory" 
+OK
+$ dir "*" 
+. |  | 10 0
+.. |  | 10 0
+Floppy Long Name 1.txt | FLOPPY~1.TXT | 20 1
+Floppy Long Name 2.txt | FLOPPY~2.TXT | 20 1
+Floppy Long Name 3.txt | FLOPPY~3.TXT | 20 1
+Floppy Long Name 4.txt | FLOPPY~4.TXT | 20 1
+Floppy Long Name 5.txt | FLOPPY~5.TXT | 20 1
+Floppy Long Name 6.txt | FLOPPY~6.TXT | 20 1
+Floppy Long Name 7.txt | FLOPPY~7.TXT | 20 1
+Floppy Long Name 8.txt | FLOPPY~8.TXT | 20 1
+Floppy Long Name 9.txt | FLOPPY~9.TXT | 20 1
+Floppy Long Name 10.txt | FLOPP~10.TXT | 20 2
+Floppy Long Name 11.txt | FLOPP~11.TXT | 20 2
+Floppy Long Name 12.txt | FLOPP~12.TXT | 20 2
+Floppy Long Name 13.txt | FLOPP~13.TXT | 20 2
+Floppy Long Name 14.txt | FLOPP~14.TXT | 20 2
+Floppy Long Name 15.txt | FLOPP~15.TXT | 20 2
+Floppy Long Name 16.txt | FLOPP~16.TXT | 20 2
+Floppy Long Name 17.txt | FLOPP~17.TXT | 20 2
+Floppy Long Name 18.txt | FLOPP~18.TXT | 20 2
+Floppy Long Name 19.txt | FLOPP~19.TXT | 20 2
+Floppy Long Name 20.txt | FLOPP~20.TXT | 20 2
+OK
+$ ren "Floppy Long Name 7.txt" "Renamed On Floppy.txt" 
+OK
+$ cat "Renamed On Floppy.txt" 
+7
+OK
+$ delw "Floppy Long Name 1*" 
+OK
+$ dir "*" 
+. |  | 10 0
+.. |  | 10 0
+Floppy Long Name 2.txt | FLOPPY~2.TXT | 20 1
+Floppy Long Name 3.txt | FLOPPY~3.TXT | 20 1
+Floppy Long Name 4.txt | FLOPPY~4.TXT | 20 1
+Floppy Long Name 5.txt | FLOPPY~5.TXT | 20 1
+Floppy Long Name 6.txt | FLOPPY~6.TXT | 20 1
+Renamed On Floppy.txt | RENAME~1.TXT | 20 1
+Floppy Long Name 8.txt | FLOPPY~8.TXT | 20 1
+Floppy Long Name 9.txt | FLOPPY~9.TXT | 20 1
+Floppy Long Name 20.txt | FLOPP~20.TXT | 20 2
+OK
+$ pwd 
+\Floppy Directory
+OK
+$ pwd C 
+\Many
+OK
+$ short "A:\Floppy Directory\Renamed On Floppy.txt" 
+A:\FLOPPY~1\RENAME~1.TXT
+OK
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Removed from memory.
+$ vol C:\ 
+ERR 28928

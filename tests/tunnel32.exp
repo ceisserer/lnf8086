@@ -1,0 +1,182 @@
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Code page 437
+Installed, 24256 bytes resident.
+$ cd C:\ORPHANS 
+OK
+$ dir * 
+. |  | 10 0
+.. |  | 10 0
+ORPHANXX.TXT |  | 20 7
+Victim Long Name.zzz | VICTIM~1.ZZZ | 20 7
+OK
+$ fdel *.ZZZ 
+OK
+$ dir * 
+. |  | 10 0
+.. |  | 10 0
+ORPHANXX.TXT |  | 20 7
+OK
+$ md "C:\Tunnel Test" 
+OK
+$ cd "C:\Tunnel Test" 
+OK
+$ mk "Save Demo Document.wri" first 
+action 2
+OK
+$ sdel SAVEDE~1.WRI 
+OK
+$ screat SAVEDE~1.WRI 
+OK
+$ cat "Save Demo Document.wri" 
+plain
+OK
+$ mk "Long Report.txt" v1 
+action 2
+OK
+$ screat REPORT.TMP 
+OK
+$ sren LONGRE~1.TXT LONGRE~1.BAK 
+OK
+$ sren REPORT.TMP LONGRE~1.TXT 
+OK
+$ cat "Long Report.txt" 
+plain
+OK
+$ mk "Created With 5Bh.txt" x 
+action 2
+OK
+$ sdel CREATE~1.TXT 
+OK
+$ snew CREATE~1.TXT 
+OK
+$ mk "Opened With 6Ch.txt" x 
+action 2
+OK
+$ sdel OPENED~1.TXT 
+OK
+$ sopen OPENED~1.TXT 
+action 2
+OK
+$ sopen OPENED~1.TXT 
+ERR 80
+$ mk "Deleted For Good.txt" x 
+action 2
+OK
+$ sdel DELETE~1.TXT 
+OK
+$ mk "Renamed By DOS.txt" x 
+action 2
+OK
+$ sren RENAME~1.TXT PLAIN.TXT 
+OK
+$ screat OTHER.TXT 
+OK
+$ mk "Fcb Delete One.xyz" 1 
+action 2
+OK
+$ mk "Fcb Delete Two.xyz" 2 
+action 2
+OK
+$ fdel *.XYZ 
+OK
+$ mk "Fcb Rename Me.abc" x 
+action 2
+OK
+$ fren FCBREN~1.ABC FCBPLAIN.ABC 
+OK
+$ mk "Fcb Wild One.qqq" 1 
+action 2
+OK
+$ mk "Fcb Wild Two.qqq" 2 
+action 2
+OK
+$ fren *.QQQ *.RRR 
+OK
+$ mk "Dir Bound.txt" x 
+action 2
+OK
+$ sdel DIRBOU~1.TXT 
+OK
+$ md Sub 
+OK
+$ screat SUB\DIRBOU~1.TXT 
+OK
+$ screat DIRBOU~1.TXT 
+OK
+$ dir * 
+. |  | 10 0
+.. |  | 10 0
+Save Demo Document.wri | SAVEDE~1.WRI | 20 5
+OTHER.TXT |  | 20 5
+LONGRE~1.BAK |  | 20 2
+Long Report.txt | LONGRE~1.TXT | 20 5
+Created With 5Bh.txt | CREATE~1.TXT | 20 5
+Opened With 6Ch.txt | OPENED~1.TXT | 20 5
+Sub | SUB | 10 0
+PLAIN.TXT |  | 20 1
+Dir Bound.txt | DIRBOU~1.TXT | 20 5
+FCBPLAIN.ABC |  | 20 1
+FCBWIL~1.RRR |  | 20 1
+FCBWIL~2.RRR |  | 20 1
+OK
+$ dir "Sub\*" 
+. |  | 10 0
+.. |  | 10 0
+DIRBOU~1.TXT |  | 20 5
+OK
+$ mk "A:\Floppy Save Test.txt" x 
+action 2
+OK
+$ sdel A:\FLOPPY~1.TXT 
+OK
+$ screat A:\FLOPPY~1.TXT 
+OK
+$ dir "A:\Flop*" 
+Floppy Save Test.txt | FLOPPY~1.TXT | 20 5
+OK
+$ mk "Expired Name.txt" x 
+action 2
+OK
+$ sdel EXPIRE~1.TXT 
+OK
+$ wait 17 
+OK
+$ screat EXPIRE~1.TXT 
+OK
+$ dir "EXP*" 
+EXPIRE~1.TXT |  | 20 5
+OK
+$ finds 8 * 
+..
+OK
+$ finds 9 * 
+ERR 6
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Removed from memory.
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Usage: LFNTSR [/U] [/F] [/Q] [/H:n] [/T:n]
+  /U    uninstall
+  /F    install even if a long file name API is present
+  /Q    quiet
+  /H:n  find handles (1-64, default 8)
+  /T:n  long names remembered for tunnelling (0-32, default 8)
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Code page 437
+Installed, 23120 bytes resident.
+$ mk "No Tunnel.txt" x 
+action 2
+OK
+$ sdel NOTUNN~1.TXT 
+OK
+$ screat NOTUNN~1.TXT 
+OK
+$ dir "NOT*" 
+NOTUNN~1.TXT |  | 20 5
+OK
+$ finds 12 * 
+..
+OK
+$ finds 13 * 
+ERR 6
+LFNTSR 1.10 - long file name API for DOS (FAT12/16/32)
+Removed from memory.

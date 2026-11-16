@@ -317,8 +317,11 @@ resolve:
         mov word [pl_end],plong+2
         mov word [rp_srest],0
         mov word [rp_lrest],0
-        mov word [rp_parent],0
-        mov word [cur_clus],0
+        xor ax,ax
+        mov [rp_parent],ax
+        mov [rp_parent+2],ax
+        mov [cur_clus],ax
+        mov [cur_clus+2],ax
         mov ax,[ncomps]
         cmp ax,[minc]
         jne .walk
@@ -348,14 +351,17 @@ resolve:
         jc .pnf
         call has_wild
         jc .pnf
-        mov ax,[cur_clus]
-        call dir_set
+        DIRSET cur_clus
         call dir_find
         jc .pnf_io
         test byte [fr_ent+0Bh],10h
         jz .pnf
-        mov ax,[fr_ent+1Ah]
+        push bx
+        mov bx,fr_ent
+        call ent_clus
+        pop bx
         mov [cur_clus],ax
+        mov [cur_clus+2],dx
         push si
         mov si,fr_sfn
         mov bx,ps_end
@@ -371,8 +377,7 @@ resolve:
         inc cx
         jmp .wl
         ; ---- last component
-.last:  mov ax,[cur_clus]
-        mov [rp_parent],ax
+.last:  CLUSCPY rp_parent,cur_clus
         mov di,lastname
         test byte [rf_flags],RF_PATTERN
         jnz .lpat
@@ -383,8 +388,7 @@ resolve:
         jc .fnf
         call is_device                  ; CON, NUL, ... -> DOS
         jc .dev
-        mov ax,[cur_clus]
-        call dir_set
+        DIRSET cur_clus
         call dir_find
         jc .lnf
         mov byte [rp_found],1
